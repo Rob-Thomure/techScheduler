@@ -5,7 +5,7 @@
  */
 package controller;
 
-import dataAccess.ConnectDB;
+//import dataAccess.ConnectDB;
 
 import java.io.IOException;
 import java.net.URL;
@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 import dataAccess.Data;
+import database.DataSource;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -26,6 +27,7 @@ import model.User;
  * @author robertthomure
  */
 public class LoginController implements Initializable {
+    DataSource dataSource = DataSource.getInstance();
     LoginModel loginModel = new LoginModel();
 
     ResourceBundle rb;
@@ -53,7 +55,9 @@ public class LoginController implements Initializable {
 
     @FXML
     void onActionExit(ActionEvent event) {
-        ConnectDB.DBClose(); // remove this after refactoring
+        if (dataSource != null) {
+            dataSource.closeConnection();
+        }
         System.exit(0);
     }
 
@@ -72,11 +76,11 @@ public class LoginController implements Initializable {
                     alert.setContentText("There is an appointment within 15 minutes");
                     alert.showAndWait();
                 }
-                Data.recordLogin(usernameTxt.getText(), "successfully");
+                loginModel.recordLogin(usernameTxt.getText(), "successfully");
                 NewScene newScene = new NewScene(event, "AppointmentsView");
                 newScene.switchScenes();
             } else {
-                Data.recordLogin(usernameTxt.getText(), "failed");
+                loginModel.recordLogin(usernameTxt.getText(), "failed");
                 throw new IllegalArgumentException("incorrect username or password");
             }
         } catch(IllegalArgumentException e) {

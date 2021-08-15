@@ -6,6 +6,7 @@
 package controller;
 
 import dataAccess.ConnectDB;
+import database.DataSource;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,6 +36,7 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class AppointmentsViewController implements Initializable {
+    DataSource dataSource = DataSource.getInstance();
     AppointmentsViewModel appointmentsViewModel = new AppointmentsViewModel();
 
     @FXML
@@ -151,7 +153,9 @@ public class AppointmentsViewController implements Initializable {
 
     @FXML
     void onActionExit(ActionEvent event) {
-        ConnectDB.DBClose();
+        if (dataSource != null) {
+            dataSource.closeConnection();
+        }
         System.exit(0);
     }
 

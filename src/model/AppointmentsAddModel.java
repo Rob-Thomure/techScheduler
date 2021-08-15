@@ -72,10 +72,6 @@ public class AppointmentsAddModel {
         this.customers = dataSource.customerQuery();
     }
 
-    public int getAppointmentId() {
-        return appointmentId;
-    }
-
     public void setAppointmentId(int appointmentId) {
         this.appointmentId = appointmentId;
     }
@@ -123,7 +119,6 @@ public class AppointmentsAddModel {
     }
 
     public void setAppointments() {
-        //TODO implement this
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
         this.appointments = dataSource.conflictingAppointmentsQuery();
@@ -131,7 +126,6 @@ public class AppointmentsAddModel {
 
     public boolean checkForConflictingAppointments() {
         for (AppointmentsAddModel appointment : appointments) {
-            //TODO implement this method
             if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
                 if ((this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd()))
                         || (this.end.isAfter(appointment.getStart()) && this.end.isBefore(appointment.getEnd()))

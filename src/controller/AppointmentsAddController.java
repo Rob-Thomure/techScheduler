@@ -76,7 +76,6 @@ public class AppointmentsAddController implements Initializable {
         switchScenes(event, "AppointmentsView");
     }
 
-    //TODO refactor to use DataSource instead of queryDB
     @FXML
     void onActionSave(ActionEvent event) throws IOException, SQLException {
         LocalDate date = dateBox.getValue();
@@ -104,8 +103,6 @@ public class AppointmentsAddController implements Initializable {
                     date.getDayOfMonth(), Integer.parseInt(endHour), Integer.parseInt(endMinute));
             appointmentsAddModel.setEnd(appointmentsAddModel.convertToUTC(dateTimeEnd));
             if(dateTimeStart.isBefore(dateTimeEnd)){
-                String startTime = Data.convertToUTC(dateTimeStart);
-                String endTime = Data.convertToUTC(dateTimeEnd);
                 // set customerId
                 appointmentsAddModel.setCustomerId(appointmentsAddModel.getCustomerIdFromDB(customerName));
                 // set userId

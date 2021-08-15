@@ -212,17 +212,16 @@ public class Data {
 //        }
 //    }
 
-    public static void recordLogin(String userName, String result){
-        ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime zoneDateTime = LocalDateTime.now().atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
-        try (PrintWriter loginLogger = new PrintWriter(new FileOutputStream(
-                new File("login_log.txt"), true))) {
-            loginLogger.append(userName + " " + result + " logged in " + zoneDateTime + "\n");
-            loginLogger.close();
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(Data.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
+//    public static void recordLogin(String userName, String result){
+//        ZoneId zoneId = ZoneId.systemDefault();
+//        ZonedDateTime zoneDateTime = LocalDateTime.now().atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
+//        try (PrintWriter loginLogger = new PrintWriter(new FileOutputStream(
+//                new File("login_log.txt"), true))) {
+//            loginLogger.append(userName + " " + result + " logged in " + zoneDateTime + "\n");
+//        } catch (FileNotFoundException ex) {
+//            Logger.getLogger(Data.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
 
 //    public static boolean hasAppointmentScheduled(ResultSet appointmentRS, int customerId) throws SQLException {
 //        boolean flag = false;
