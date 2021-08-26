@@ -1,6 +1,5 @@
 package model;
 
-import dataAccess.Data;
 import database.DataSource;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -109,7 +108,7 @@ public class LoginModel {
                 new File("login_log.txt"), true))) {
             loginLogger.append(userName + " " + result + " logged in " + zoneDateTime + "\n");
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Data.class.getName()).log(Level.SEVERE, null, ex);
+            //Logger.getLogger(Data.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 

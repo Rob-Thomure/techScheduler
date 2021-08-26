@@ -5,11 +5,9 @@
  */
 package controller;
 
-import dataAccess.Data;
 import exceptions.ConflictsWithScheduleException;
 import exceptions.NotWithinBusinessHoursException;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import exceptions.StartIsAfterEndException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,14 +20,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.stage.Stage;
 import model.AppointmentsAddModel;
-import model.TableLists;
-
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -38,11 +32,11 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class AppointmentsAddController implements Initializable {
-    AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
+    //AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -77,96 +71,58 @@ public class AppointmentsAddController implements Initializable {
     }
 
     @FXML
-    void onActionSave(ActionEvent event) throws IOException, SQLException {
+    void onActionSave(ActionEvent event) throws IOException {
         LocalDate date = dateBox.getValue();
         String startHour = startHrComboBox.getValue();
         String startMinute = startMinuteComboBox.getValue();
         String endHour = endHrComboBox.getValue();
         String endMinute = endMinuteComboBox.getValue();
-        appointmentsAddModel.setType(typeComboBox.getValue());
-
+        String type = typeComboBox.getValue();
         String customerName = customerComboBox.getValue();
         String userName = userComboBox.getValue();
 
-
-
         try {
             if (date == null || startHour == null || startMinute == null || endHour == null || endMinute == null ||
-                    customerName == null || userName == null) {
-                throw new NullPointerException();
+                    customerName == null || type == null || userName == null) {
+                throw new NullPointerException("Please fill in all empty fields");
             }
-            //convert date, hour, minute into LocalDateTime format
-            LocalDateTime dateTimeStart = LocalDateTime.of(date.getYear(), date.getMonthValue(),
-                    date.getDayOfMonth(), Integer.parseInt(startHour), Integer.parseInt(startMinute));
-            appointmentsAddModel.setStart(appointmentsAddModel.convertToUTC(dateTimeStart));
-            LocalDateTime dateTimeEnd = LocalDateTime.of(date.getYear(), date.getMonthValue(),
-                    date.getDayOfMonth(), Integer.parseInt(endHour), Integer.parseInt(endMinute));
-            appointmentsAddModel.setEnd(appointmentsAddModel.convertToUTC(dateTimeEnd));
-            if(dateTimeStart.isBefore(dateTimeEnd)){
-                // set customerId
-                appointmentsAddModel.setCustomerId(appointmentsAddModel.getCustomerIdFromDB(customerName));
-                // set userId
-                appointmentsAddModel.setUserId(appointmentsAddModel.getUserIdFromDB(userName));
-                //checking existing appointments
-                appointmentsAddModel.setAppointments();
-                LocalTime localStartTime = dateTimeStart.toLocalTime();
-                LocalTime localEndTime = dateTimeEnd.toLocalTime();
-                LocalTime businessTimeStart = LocalTime.of(8, 00);
-                LocalTime businessTimeEnd = LocalTime.of(17, 00);
-                int dayOfWeek = dateTimeStart.getDayOfWeek().getValue();
-                if(appointmentsAddModel.checkForConflictingAppointments()) {
-                    throw new ConflictsWithScheduleException("conflicts with an existing schedule");
-                }
-                if(localStartTime.isBefore(businessTimeStart) || localEndTime.isAfter(businessTimeEnd) ||
-                        dayOfWeek == 6 || dayOfWeek == 7){
-                    throw new NotWithinBusinessHoursException("Scheduled time is not "
-                            + "within business hours (Mon-Fri 08:00 - 17:00)");
-                }
-                appointmentsAddModel.addAppointmentToDB(appointmentsAddModel);
-                switchScenes(event, "AppointmentsView");
-            } else {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("Please choose an end time that is after the start time");
-                alert.showAndWait();
+
+            AppointmentsAddModel newAppointment = new AppointmentsAddModel(date, startHour, startMinute, endHour,
+                    endMinute, type, customerName, userName);
+            if(newAppointment.startIsAfterEnd()) {
+                throw new StartIsAfterEndException("Please choose an end time that is after the start time");
             }
-        } catch(NullPointerException | NumberFormatException e) {
+            if(newAppointment.notWithinBusinessHours()){
+                throw new NotWithinBusinessHoursException("Please schedule a time within business hours(Mon-Fri 08:00-17:00)");
+            }
+            if(newAppointment.conflictsWithExistingAppointment()) {
+                throw new ConflictsWithScheduleException("conflicts with an existing schedule");
+            }
+            newAppointment.addAppointmentToDB(newAppointment);
+            switchScenes(event, "AppointmentsView");
+
+
+        } catch(NullPointerException | StartIsAfterEndException | NumberFormatException | ConflictsWithScheduleException
+                | NotWithinBusinessHoursException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setContentText("Please fill in all empty fields");
-            alert.showAndWait();
-        } catch (ConflictsWithScheduleException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("conflicts with an existing schedule");
-            alert.showAndWait();
-        } catch (NotWithinBusinessHoursException e) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setContentText("Please schedule a time within business hours(Mon-Fri 08:00-17:00)");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
 
-    @FXML
-    void onActionTypeCombo(ActionEvent event) {
-    }
 
     /**
      * Initializes the controller class.
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        startHrComboBox.setItems(TableLists.getHours());
-        startMinuteComboBox.setItems(TableLists.getMinutes());
-        endHrComboBox.setItems(TableLists.getHours());
-        endMinuteComboBox.setItems(TableLists.getMinutes());
-        typeComboBox.setItems(TableLists.getMeetingTypes());
-        //build the customer combo box
-        appointmentsAddModel.setCustomers();
-        customerComboBox.setItems(appointmentsAddModel.getCustomers());
-        //build the user combo box
-        appointmentsAddModel.setUsers();
-        userComboBox.setItems(appointmentsAddModel.getUsers());
+        startHrComboBox.setItems(AppointmentsAddModel.getHours());
+        startMinuteComboBox.setItems(AppointmentsAddModel.getMinutes());
+        endHrComboBox.setItems(AppointmentsAddModel.getHours());
+        endMinuteComboBox.setItems(AppointmentsAddModel.getMinutes());
+        typeComboBox.setItems(AppointmentsAddModel.getMeetingTypes());
+        customerComboBox.setItems(AppointmentsAddModel.getCustomers());
+        userComboBox.setItems(AppointmentsAddModel.getUsers());
     }
 }

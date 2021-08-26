@@ -1,6 +1,5 @@
 package sample;
 
-import dataAccess.ConnectDB;
 import database.DataSource;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

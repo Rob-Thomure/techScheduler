@@ -261,25 +261,25 @@ public class DataSource {
         return userId;
     }
 
-    public ObservableList<AppointmentsAddModel> conflictingAppointmentsQuery() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT * FROM appointment");
-                ResultSet resultSet = preparedStatement.executeQuery()) {
-            ObservableList<AppointmentsAddModel> appointments = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
-                appointmentsAddModel.setCustomerId(resultSet.getInt(COLUMN_APPOINTMENT_CUSTOMER_ID));
-                appointmentsAddModel.setUserId(resultSet.getInt(COLUMN_APPOINTMENT_USERID));
-                appointmentsAddModel.setStart(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START)));
-                appointmentsAddModel.setEnd(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END)));
-                appointments.add(appointmentsAddModel);
-            }
-            return appointments;
-        } catch (SQLException e) {
-            System.out.println("conflictingAppointmentsQuery failed " + e.getMessage());
-        }
-        return null;
-    }
+//    public ObservableList<AppointmentsAddModel> conflictingAppointmentsQuery() {
+//        try (PreparedStatement preparedStatement = connection.prepareStatement(
+//                "SELECT * FROM appointment");
+//                ResultSet resultSet = preparedStatement.executeQuery()) {
+//            ObservableList<AppointmentsAddModel> appointments = FXCollections.observableArrayList();
+//            while (resultSet.next()) {
+//                AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
+//                appointmentsAddModel.setCustomerId(resultSet.getInt(COLUMN_APPOINTMENT_CUSTOMER_ID));
+//                appointmentsAddModel.setUserId(resultSet.getInt(COLUMN_APPOINTMENT_USERID));
+//                appointmentsAddModel.setStart(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START)));
+//                appointmentsAddModel.setEnd(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END)));
+//                appointments.add(appointmentsAddModel);
+//            }
+//            return appointments;
+//        } catch (SQLException e) {
+//            System.out.println("conflictingAppointmentsQuery failed " + e.getMessage());
+//        }
+//        return null;
+//    }
 
     public void insertAppointment(AppointmentsAddModel appointment) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
@@ -293,11 +293,14 @@ public class DataSource {
             preparedStatement.setString(6, "unknown");
             preparedStatement.setString(7, appointment.getType());
             preparedStatement.setString(8, "unknown");
-            preparedStatement.setTimestamp(9, Timestamp.valueOf(appointment.getStart()));
-            preparedStatement.setTimestamp(10, Timestamp.valueOf(appointment.getEnd()));
+            preparedStatement.setTimestamp(9, Timestamp.valueOf(convertToUTC(appointment.getStart())));
+            preparedStatement.setTimestamp(10, Timestamp.valueOf(convertToUTC(appointment.getEnd())));
             preparedStatement.setString(11, "Admin");
             preparedStatement.setString(12, "Admin");
             preparedStatement.execute();
+
+
+
         } catch (SQLException e) {
             System.out.println("insertAppointment failed " + e.getMessage());
         }
@@ -542,6 +545,13 @@ public class DataSource {
         LocalDateTime zonedLocalDateTime = zonedDateTime.toLocalDateTime();
         return zonedLocalDateTime;
     }
+
+    public LocalDateTime convertToUTC(LocalDateTime localDateTime) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
+        return zonedDateTime.toLocalDateTime();
+    }
+
 
     public ArrayList<ReportByAppointmentTypeModel> numberAppointmentTypesByMonthQuery() {
         try (PreparedStatement preparedStatement = connection.prepareStatement(

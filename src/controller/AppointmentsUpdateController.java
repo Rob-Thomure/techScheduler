@@ -5,15 +5,6 @@
  */
 package controller;
 
-import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ResourceBundle;
-
 import exceptions.ConflictsWithScheduleException;
 import exceptions.NotWithinBusinessHoursException;
 import javafx.event.ActionEvent;
@@ -22,13 +13,20 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
-import model.*;
+import model.AppointmentsUpdateModel;
+import model.AppointmentsViewModel;
+import model.TableLists;
+
+import java.io.IOException;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.ResourceBundle;
 
 /**
  * FXML Controller class
@@ -40,7 +38,7 @@ public class AppointmentsUpdateController implements Initializable {
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -78,7 +76,7 @@ public class AppointmentsUpdateController implements Initializable {
     }
 
     @FXML
-    void onActionSave(ActionEvent event) throws IOException, SQLException {
+    void onActionSave(ActionEvent event) throws IOException {
         LocalDate date = dateBox.getValue();
         String startHour = startHrComboBox.getValue();
         String startMinute = startMinuteComboBox.getValue();
@@ -102,8 +100,8 @@ public class AppointmentsUpdateController implements Initializable {
             appointmentsUpdateModel.setLocalDateTimeStart(appointmentsUpdateModel.convertToUTC(dateTimeStart));
             appointmentsUpdateModel.setLocalDateTimeEnd(appointmentsUpdateModel.convertToUTC(dateTimeEnd));
             int dayOfWeek = dateTimeStart.getDayOfWeek().getValue();
-            LocalTime businessTimeStart = LocalTime.of(8, 00);
-            LocalTime businessTimeEnd = LocalTime.of(17, 00);
+            LocalTime businessTimeStart = LocalTime.of(8, 0);
+            LocalTime businessTimeEnd = LocalTime.of(17, 0);
             try {
                 if(appointmentsUpdateModel.checkForConflictingAppointments()) {
                     throw new ConflictsWithScheduleException("conflicts with an existing schedule");

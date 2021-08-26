@@ -5,7 +5,6 @@
  */
 package model;
 
-import dataAccess.Data;
 
 import java.io.IOException;
 import java.sql.SQLException;

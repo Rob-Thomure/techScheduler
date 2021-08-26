@@ -5,7 +5,6 @@
  */
 package rtsoftware2projectappver2;
 
-import dataAccess.ConnectDB;
 import java.sql.SQLException;
 import java.util.Locale;
 import java.util.ResourceBundle;
