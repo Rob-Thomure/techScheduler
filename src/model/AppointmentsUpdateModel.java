@@ -8,52 +8,54 @@ import java.time.*;
 import java.util.ArrayList;
 
 public class AppointmentsUpdateModel {
-    private LocalDate date;
-    private LocalTime start;
-    private LocalTime end;
-    private String type;
-    private String customerName;
-    private String userName;
-    private int appointmentId;
-    private ArrayList<Appointment> appointments;
-    private ArrayList<Customer> customers;
-    private ArrayList<User> users;
-    private ObservableList<String> customersComboBox;
-    private ObservableList<String> usersComboBox;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
+    private final String type;
+    private final String customerName;
+    private final String userName;
+    private final int customerId;
+    private final int userId;
+    private final int appointmentId;
 
-    private int customerId;
-    private int userId;
-    private LocalDateTime localDateTimeStart;
-    private LocalDateTime localDateTimeEnd;
+    private static final ObservableList<String> hours = FXCollections.observableArrayList("01",
+            "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13",
+            "14", "15", "16", "17", "18", "19", "20", "21", "22", "23");
+    private static final ObservableList<String> minutes = FXCollections.observableArrayList("00",
+            "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
+    private static final ObservableList<String> meetingTypes = FXCollections.observableArrayList(
+            "Planning", "Decision Making", "Progress Update");
 
-    public LocalDateTime getLocalDateTimeStart() {
-        return localDateTimeStart;
+    public AppointmentsUpdateModel(LocalDate date, String startHour, String startMinute, String endHour,
+                                   String endMinute, String type, String customerName, String userName, int appointmentId) {
+        this.start = convertToLocalDateTime(date, startHour, startMinute);
+        this.end = convertToLocalDateTime(date, endHour, endMinute);
+        this.type = type;
+        this.customerName = customerName;
+        this.userName = userName;
+        this.customerId = getCustomerIdFromDB(customerName);
+        this.userId = getUserIdFromDB(userName);
+        this.appointmentId = appointmentId;
     }
-
-    public LocalDateTime getLocalDateTimeEnd() {
-        return localDateTimeEnd;
-    }
-
-    public void setLocalDateTimeStart(LocalDateTime localDateTimeStart) {
-        this.localDateTimeStart = localDateTimeStart;
-    }
-
-    public void setLocalDateTimeEnd(LocalDateTime localDateTimeEnd) {
-        this.localDateTimeEnd = localDateTimeEnd;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
-    }
-
-    public int getCustomerIdFromCustomers(String customerName) {
-        for (Customer customer : customers) {
+    
+    private int getCustomerIdFromDB(String customerName) {
+        DataSource dataSource = DataSource.getInstance();
+        dataSource.getConnection();
+        ArrayList<Customer> customers = dataSource.queryCustomer();
+        for (Customer customer: customers) {
             if (customerName.equals(customer.getCustomerName())) {
                 return customer.getCustomerId();
+            }
+        }
+        return -1;
+    }
+
+    private int getUserIdFromDB(String userName) {
+        DataSource dataSource = DataSource.getInstance();
+        dataSource.getConnection();
+        ArrayList<User> users = dataSource.queryUser();
+        for (User user: users) {
+            if (userName.equals(user.getUserName())) {
+                return user.getUserId();
             }
         }
         return -1;
@@ -63,131 +65,32 @@ public class AppointmentsUpdateModel {
         return customerId;
     }
 
-    public int getUserIdFromCustomers(String userName) {
-        for (User user : users) {
-            if (userName.equals(user.getUserName())) {
-                return user.getUserId();
-            }
-        }
-        return -1;
-    }
-
     public int getUserId() {
         return userId;
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    public LocalTime getStart() {
+    public LocalDateTime getStart() {
         return start;
     }
 
-    public void setStart(LocalTime start) {
-        this.start = start;
-    }
-
-    public LocalTime getEnd() {
+    public LocalDateTime getEnd() {
         return end;
-    }
-
-    public void setEnd(LocalTime end) {
-        this.end = end;
     }
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
     public String getCustomerName() {
         return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
     }
 
     public String getUserName() {
         return userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public int getAppointmentId() {
         return appointmentId;
-    }
-
-    public void setAppointmentId(int appointmentId) {
-        this.appointmentId = appointmentId;
-    }
-
-    public void setAppointments() {
-        DataSource dataSource = DataSource.getInstance();
-        dataSource.getConnection();
-        this.appointments = dataSource.queryAppointment();
-    }
-
-    public void setCustomers() {
-        DataSource dataSource = DataSource.getInstance();
-        dataSource.getConnection();
-        this.customers = dataSource.queryCustomer();
-    }
-
-    public void setUsers() {
-        DataSource dataSource = DataSource.getInstance();
-        dataSource.getConnection();
-        this.users = dataSource.queryUser();
-    }
-
-    public ObservableList<String> getCustomersComboBox() {
-        return customersComboBox;
-    }
-
-    public void setCustomersComboBox() {
-        ObservableList<String> customersComboBox = FXCollections.observableArrayList();
-        for (Customer customer : customers) {
-            customersComboBox.add(customer.getCustomerName());
-        }
-        this.customersComboBox = customersComboBox;
-    }
-
-    public ObservableList<String> getUsersComboBox() {
-        return usersComboBox;
-    }
-
-    public void setUsersComboBox() {
-        ObservableList<String> usersComboBox = FXCollections.observableArrayList();
-        for (User user : users) {
-            usersComboBox.add(user.getUserName());
-        }
-        this.usersComboBox = usersComboBox;
-    }
-
-    public boolean checkForConflictingAppointments() {
-        for (Appointment appointment : appointments) {
-            if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
-                if ((this.localDateTimeStart.isAfter(appointment.getStart()) && this.localDateTimeStart.isBefore(appointment.getEnd()))
-                        || (this.localDateTimeEnd.isAfter(appointment.getStart()) && this.localDateTimeEnd.isBefore(appointment.getEnd()))
-                        || (this.localDateTimeStart.isEqual(appointment.getStart()))
-                        || (this.localDateTimeEnd.isEqual(appointment.getEnd()))
-                        || (appointment.getStart().isAfter(this.localDateTimeStart) && appointment.getStart().isBefore(this.localDateTimeEnd))
-                        || (appointment.getEnd().isAfter(this.localDateTimeStart) && appointment.getEnd().isBefore(this.localDateTimeEnd)) ) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     public void updateAppointment(AppointmentsUpdateModel appointment) {
@@ -196,12 +99,74 @@ public class AppointmentsUpdateModel {
         dataSource.updateAppointment(appointment);
     }
 
-    public LocalDateTime convertToUTC(LocalDateTime localDateTime) {
-        ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
-        return zonedDateTime.toLocalDateTime();
+    public static ObservableList<String> getHours() {
+        return hours;
     }
 
+    public static ObservableList<String> getMinutes() {
+        return minutes;
+    }
 
+    public static ObservableList<String> getMeetingTypes() {
+        return meetingTypes;
+    }
+
+    public static ObservableList<String> setCustomerComboBoxNames() {
+        DataSource dataSource = DataSource.getInstance();
+        dataSource.getConnection();
+        ArrayList<Customer> customers = dataSource.queryCustomer();
+        ObservableList<String> customerNames = FXCollections.observableArrayList();
+        for (Customer customer: customers) {
+            customerNames.add(customer.getCustomerName());
+        }
+        return customerNames;
+    }
+
+    public static ObservableList<String> setUserComboBoxNames() {
+        DataSource dataSource = DataSource.getInstance();
+        dataSource.getConnection();
+        ArrayList<User> users = dataSource.queryUser();
+        ObservableList<String> userNames = FXCollections.observableArrayList();
+        for (User user: users) {
+            userNames.add(user.getUserName());
+        }
+        return userNames;
+    }
+
+    private LocalDateTime convertToLocalDateTime(LocalDate date, String hour, String minute){
+        return LocalDateTime.of(date.getYear(), date.getMonthValue(),
+                date.getDayOfMonth(), Integer.parseInt(hour), Integer.parseInt(minute));
+    }
+
+    public boolean startIsAfterEnd() {
+        return this.start.isAfter(this.end);
+    }
+
+    public boolean conflictsWithExistingAppointment() {
+        DataSource dataSource = DataSource.getInstance();
+        dataSource.getConnection();
+        ArrayList<Appointment> appointments = dataSource.queryAppointment();
+        for (Appointment appointment : appointments) {
+            if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
+                if ((this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd()))
+                        || (this.end.isAfter(appointment.getStart()) && this.end.isBefore(appointment.getEnd()))
+                        || (this.start.isEqual(appointment.getStart()))
+                        || (this.end.isEqual(appointment.getEnd()))
+                        || (appointment.getStart().isAfter(this.start) && appointment.getStart().isBefore(this.end))
+                        || (appointment.getEnd().isAfter(this.start) && appointment.getEnd().isBefore(this.end)) ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean notWithinBusinessHours() {
+        LocalTime businessTimeStart = LocalTime.of(8, 0);
+        LocalTime businessTimeEnd = LocalTime.of(17, 0);
+        int dayOfWeek = this.start.getDayOfWeek().getValue();
+        return this.start.toLocalTime().isBefore(businessTimeStart) || this.end.toLocalTime().isAfter(businessTimeEnd) ||
+                dayOfWeek == 6 || dayOfWeek == 7;
+    }
 
 }

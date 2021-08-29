@@ -7,6 +7,7 @@ package controller;
 
 import exceptions.ConflictsWithScheduleException;
 import exceptions.NotWithinBusinessHoursException;
+import exceptions.StartIsAfterEndException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,13 +18,10 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import model.AppointmentsUpdateModel;
 import model.AppointmentsViewModel;
-import model.TableLists;
 
 import java.io.IOException;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.ResourceBundle;
@@ -34,7 +32,7 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class AppointmentsUpdateController implements Initializable {
-    AppointmentsUpdateModel appointmentsUpdateModel = new AppointmentsUpdateModel();
+    AppointmentsViewModel appointmentsViewModel;
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
@@ -85,51 +83,26 @@ public class AppointmentsUpdateController implements Initializable {
         String type = typeComboBox.getValue();
         String customerName = customerComboBox.getValue();
         String userName = userComboBox.getValue();
-        int customerId = appointmentsUpdateModel.getCustomerIdFromCustomers(customerName);
-        int userId = appointmentsUpdateModel.getUserIdFromCustomers(userName);
-        LocalTime startTime = LocalTime.of(Integer.parseInt(startHour), Integer.parseInt(startMinute));
-        LocalTime endTime = LocalTime.of(Integer.parseInt(endHour), Integer.parseInt(endMinute));
-        LocalDateTime dateTimeStart = LocalDateTime.of(date.getYear(), date.getMonthValue(),
-                date.getDayOfMonth(), Integer.parseInt(startHour), Integer.parseInt(startMinute));
-        LocalDateTime dateTimeEnd = LocalDateTime.of(date.getYear(), date.getMonthValue(),
-                date.getDayOfMonth(), Integer.parseInt(endHour), Integer.parseInt(endMinute));
-        if(dateTimeStart.isBefore(dateTimeEnd)) {
-            appointmentsUpdateModel.setCustomerId(customerId);
-            appointmentsUpdateModel.setUserId(userId);
-            appointmentsUpdateModel.setType(type);
-            appointmentsUpdateModel.setLocalDateTimeStart(appointmentsUpdateModel.convertToUTC(dateTimeStart));
-            appointmentsUpdateModel.setLocalDateTimeEnd(appointmentsUpdateModel.convertToUTC(dateTimeEnd));
-            int dayOfWeek = dateTimeStart.getDayOfWeek().getValue();
-            LocalTime businessTimeStart = LocalTime.of(8, 0);
-            LocalTime businessTimeEnd = LocalTime.of(17, 0);
-            try {
-                if(appointmentsUpdateModel.checkForConflictingAppointments()) {
-                    throw new ConflictsWithScheduleException("conflicts with an existing schedule");
-                }
-                if (startTime.isBefore(businessTimeStart) || endTime.isAfter(businessTimeEnd) ||
-                        dayOfWeek == 6 || dayOfWeek == 7) {
-                    throw new NotWithinBusinessHoursException("Scheduled time is not within business "
-                            + "hours (Mon-Fri 08:00 - 17:00)");
-                    }
-                appointmentsUpdateModel.updateAppointment(appointmentsUpdateModel);
-                switchScenes(event, "AppointmentsView");
+        int appointmentId = appointmentsViewModel.getAppointmentId();
+
+        AppointmentsUpdateModel appointmentUpdate = new AppointmentsUpdateModel(date, startHour, startMinute, endHour,
+                endMinute, type, customerName, userName, appointmentId);
+        try {
+            if (appointmentUpdate.startIsAfterEnd()) {
+                throw new StartIsAfterEndException("Please choose an end time that is after the start time");
             }
-            catch(NotWithinBusinessHoursException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("Please schedule a time within business hours(Mon-Fri 08:00-17:00)");
-                alert.showAndWait();
+            if (appointmentUpdate.conflictsWithExistingAppointment()) {
+                throw new ConflictsWithScheduleException("conflicts with an existing schedule");
             }
-            catch (ConflictsWithScheduleException e) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setContentText("conflicts with an existing schedule");
-                alert.showAndWait();
+            if (appointmentUpdate.notWithinBusinessHours()) {
+                throw new NotWithinBusinessHoursException("Scheduled time is not within business hours (Mon-Fri 08:00 - 17:00)");
             }
-        } else {
+            appointmentUpdate.updateAppointment(appointmentUpdate);
+            switchScenes(event, "AppointmentsView");
+        } catch (StartIsAfterEndException | ConflictsWithScheduleException | NotWithinBusinessHoursException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setContentText("Please choose an end time that is after the start time");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
@@ -146,15 +119,7 @@ public class AppointmentsUpdateController implements Initializable {
         customerComboBox.setValue(appointmentRow.getCustomerName());
         userComboBox.setValue(appointmentRow.getUserName());
         appointmentIdTxt.setText(String.valueOf(appointmentRow.getAppointmentId()));
-
-        appointmentsUpdateModel.setDate(appointmentRow.getDate());
-        appointmentsUpdateModel.setStart(appointmentRow.getStart());
-        appointmentsUpdateModel.setEnd(appointmentRow.getEnd());
-        appointmentsUpdateModel.setType(appointmentRow.getType());
-        appointmentsUpdateModel.setCustomerName(appointmentRow.getCustomerName());
-        appointmentsUpdateModel.setUserName(appointmentRow.getUserName());
-        appointmentsUpdateModel.setAppointmentId(appointmentRow.getAppointmentId());
-
+        appointmentsViewModel = appointmentRow;
     }
 
     /**
@@ -162,18 +127,13 @@ public class AppointmentsUpdateController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        appointmentsUpdateModel.setAppointments();
-        appointmentsUpdateModel.setCustomers();
-        appointmentsUpdateModel.setCustomersComboBox();
-        appointmentsUpdateModel.setUsers();
-        appointmentsUpdateModel.setUsersComboBox();
+        startHrComboBox.setItems(AppointmentsUpdateModel.getHours());
+        startMinuteComboBox.setItems(AppointmentsUpdateModel.getMinutes());
+        endHrComboBox.setItems(AppointmentsUpdateModel.getHours());
+        endMinuteComboBox.setItems(AppointmentsUpdateModel.getMinutes());
+        typeComboBox.setItems(AppointmentsUpdateModel.getMeetingTypes());
+        customerComboBox.setItems(AppointmentsUpdateModel.setCustomerComboBoxNames());
+        userComboBox.setItems(AppointmentsUpdateModel.setUserComboBoxNames());
 
-        startHrComboBox.setItems(TableLists.getHours());
-        startMinuteComboBox.setItems(TableLists.getMinutes());
-        endHrComboBox.setItems(TableLists.getHours());
-        endMinuteComboBox.setItems(TableLists.getMinutes());
-        typeComboBox.setItems(TableLists.getMeetingTypes());
-        customerComboBox.setItems(appointmentsUpdateModel.getCustomersComboBox());
-        userComboBox.setItems(appointmentsUpdateModel.getUsersComboBox());
     }
 }

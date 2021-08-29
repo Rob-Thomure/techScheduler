@@ -9,67 +9,36 @@ import java.util.ArrayList;
 
 public class AppointmentsAddModel {
 
-    private LocalDate date;
-    private String startHour;
-    private String startMinute;
-    private String endHour;
-    private String endMinute;
-    private String type;
+    private final String type;
     private String customerName;
-    private String userName;
+    private final String userName;
 
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private int customerId;
-    private int userId;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
+    private final int customerId;
+    private final int userId;
 
     public AppointmentsAddModel(LocalDate date, String startHour, String startMinute, String endHour, String endMinute,
                                 String type, String customerName, String userName) {
-        this.date = date;
-        this.startHour = startHour;
-        this.startMinute = startMinute;
-        this.endHour = endHour;
-        this.endMinute = endMinute;
         this.type = type;
         this.customerName = customerName;
         this.userName = userName;
-
-        this.start = convertToLocalDateTime(startHour, startMinute);
-        this.end = convertToLocalDateTime(endHour, endMinute);
+        this.start = convertToLocalDateTime(date, startHour, startMinute);
+        this.end = convertToLocalDateTime(date, endHour, endMinute);
         this.customerId = getCustomerIdFromDB(customerName);
         this.userId = getUserIdFromDB(userName);
     }
 
-
-
-
-
-    private int appointmentId;
-
-
-    private ObservableList<AppointmentsAddModel> appointments = FXCollections.observableArrayList();
-
-
-    private ObservableList<String> customers = FXCollections.observableArrayList();
-    private ObservableList<String> users = FXCollections.observableArrayList();
-
-
-    private static ObservableList<String> hours = FXCollections.observableArrayList("01",
+    private static final ObservableList<String> hours = FXCollections.observableArrayList("01",
             "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13",
             "14", "15", "16", "17", "18", "19", "20", "21", "22", "23");
-    private static ObservableList<String> minutes = FXCollections.observableArrayList("00",
+    private static final ObservableList<String> minutes = FXCollections.observableArrayList("00",
             "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55");
-    private static ObservableList<String> meetingTypes = FXCollections.observableArrayList(
+    private static final ObservableList<String> meetingTypes = FXCollections.observableArrayList(
             "Planning", "Decision Making", "Progress Update");
-
-
 
     public int getCustomerId() {
         return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
     }
 
     public String getCustomerName() {
@@ -84,24 +53,12 @@ public class AppointmentsAddModel {
         return userId;
     }
 
-    public void setUserId(int userId) {
-        this.userId = userId;
-    }
-
     public String getUserName() {
         return userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public static ObservableList<String> getCustomers() {
@@ -110,24 +67,12 @@ public class AppointmentsAddModel {
         return dataSource.customerQuery();
     }
 
-    public void setAppointmentId(int appointmentId) {
-        this.appointmentId = appointmentId;
-    }
-
     public LocalDateTime getStart() {
         return start;
     }
 
-    public void setStart(LocalDateTime start) {
-        this.start = start;
-    }
-
     public LocalDateTime getEnd() {
         return end;
-    }
-
-    public void setEnd(LocalDateTime end) {
-        this.end = end;
     }
 
     public static ObservableList<String> getUsers() {
@@ -148,15 +93,10 @@ public class AppointmentsAddModel {
         return dataSource.userIdQuery(userName);
     }
 
-    public ObservableList<AppointmentsAddModel> getAppointments() {
-        return appointments;
-    }
-    
     public boolean conflictsWithExistingAppointment() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
         ArrayList<Appointment> appointments = dataSource.queryAppointment();
-
         for (Appointment appointment : appointments) {
             if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
                 if ((this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd()))
@@ -178,12 +118,6 @@ public class AppointmentsAddModel {
         dataSource.insertAppointment(appointmentsAddModel);
     }
 
-    public LocalDateTime convertToUTC(LocalDateTime localDateTime) {
-        ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
-        return zonedDateTime.toLocalDateTime();
-    }
-
     public static ObservableList<String> getHours() {
         return hours;
     }
@@ -197,36 +131,19 @@ public class AppointmentsAddModel {
     }
 
     public boolean startIsAfterEnd() {
-        LocalDateTime dateTimeStart = convertToLocalDateTime(this.startHour, this.startMinute);
-        LocalDateTime dateTimeEnd = convertToLocalDateTime(this.endHour, this.endMinute);
-        if (dateTimeStart.isAfter(dateTimeEnd)) {
-            return true;
-        } else {
-            return false;
-        }
+        return start.isAfter(end);
     }
 
     public boolean notWithinBusinessHours() {
-        LocalDateTime dateTimeStart = convertToLocalDateTime(this.startHour, this.startMinute);
-        LocalDateTime dateTimeEnd = convertToLocalDateTime(this.endHour, this.endMinute);
-
         LocalTime businessTimeStart = LocalTime.of(8, 0);
         LocalTime businessTimeEnd = LocalTime.of(17, 0);
-        int dayOfWeek = dateTimeStart.getDayOfWeek().getValue();
-
-        if (dateTimeStart.toLocalTime().isBefore(businessTimeStart) || dateTimeEnd.toLocalTime().isAfter(businessTimeEnd) ||
-                dayOfWeek == 6 || dayOfWeek == 7) {
-            return true;
-        } else {
-            return false;
-        }
-
+        int dayOfWeek = this.start.getDayOfWeek().getValue();
+        return this.start.toLocalTime().isBefore(businessTimeStart) || this.end.toLocalTime().isAfter(businessTimeEnd) ||
+                dayOfWeek == 6 || dayOfWeek == 7;
     }
 
-    private LocalDateTime convertToLocalDateTime(String hour, String minute) {
-        return LocalDateTime.of(this.date.getYear(), this.date.getMonthValue(),
-                this.date.getDayOfMonth(), Integer.parseInt(hour), Integer.parseInt(minute));
+    private LocalDateTime convertToLocalDateTime(LocalDate date, String hour, String minute) {
+        return LocalDateTime.of(date.getYear(), date.getMonthValue(),
+                date.getDayOfMonth(), Integer.parseInt(hour), Integer.parseInt(minute));
     }
-
-
 }

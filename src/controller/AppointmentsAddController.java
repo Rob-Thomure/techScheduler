@@ -32,7 +32,6 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class AppointmentsAddController implements Initializable {
-    //AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
@@ -80,7 +79,6 @@ public class AppointmentsAddController implements Initializable {
         String type = typeComboBox.getValue();
         String customerName = customerComboBox.getValue();
         String userName = userComboBox.getValue();
-
         try {
             if (date == null || startHour == null || startMinute == null || endHour == null || endMinute == null ||
                     customerName == null || type == null || userName == null) {
@@ -101,7 +99,6 @@ public class AppointmentsAddController implements Initializable {
             newAppointment.addAppointmentToDB(newAppointment);
             switchScenes(event, "AppointmentsView");
 
-
         } catch(NullPointerException | StartIsAfterEndException | NumberFormatException | ConflictsWithScheduleException
                 | NotWithinBusinessHoursException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -110,7 +107,6 @@ public class AppointmentsAddController implements Initializable {
             alert.showAndWait();
         }
     }
-
 
     /**
      * Initializes the controller class.

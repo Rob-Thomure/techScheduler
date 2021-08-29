@@ -261,26 +261,6 @@ public class DataSource {
         return userId;
     }
 
-//    public ObservableList<AppointmentsAddModel> conflictingAppointmentsQuery() {
-//        try (PreparedStatement preparedStatement = connection.prepareStatement(
-//                "SELECT * FROM appointment");
-//                ResultSet resultSet = preparedStatement.executeQuery()) {
-//            ObservableList<AppointmentsAddModel> appointments = FXCollections.observableArrayList();
-//            while (resultSet.next()) {
-//                AppointmentsAddModel appointmentsAddModel = new AppointmentsAddModel();
-//                appointmentsAddModel.setCustomerId(resultSet.getInt(COLUMN_APPOINTMENT_CUSTOMER_ID));
-//                appointmentsAddModel.setUserId(resultSet.getInt(COLUMN_APPOINTMENT_USERID));
-//                appointmentsAddModel.setStart(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START)));
-//                appointmentsAddModel.setEnd(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END)));
-//                appointments.add(appointmentsAddModel);
-//            }
-//            return appointments;
-//        } catch (SQLException e) {
-//            System.out.println("conflictingAppointmentsQuery failed " + e.getMessage());
-//        }
-//        return null;
-//    }
-
     public void insertAppointment(AppointmentsAddModel appointment) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO appointment(customerId, userId, title, description, location, contact, type, url, start," +
@@ -313,8 +293,8 @@ public class DataSource {
             preparedStatement.setInt(1, appointment.getCustomerId());
             preparedStatement.setInt(2, appointment.getUserId());
             preparedStatement.setString(3, appointment.getType());
-            preparedStatement.setTimestamp(4, Timestamp.valueOf(appointment.getLocalDateTimeStart()));
-            preparedStatement.setTimestamp(5, Timestamp.valueOf(appointment.getLocalDateTimeEnd()));
+            preparedStatement.setTimestamp(4, Timestamp.valueOf(convertToUTC(appointment.getStart())));
+            preparedStatement.setTimestamp(5, Timestamp.valueOf(convertToUTC(appointment.getEnd())));
             preparedStatement.setString(6, "Admin");
             preparedStatement.setInt(7, appointment.getAppointmentId());
             preparedStatement.execute();
