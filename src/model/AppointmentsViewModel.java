@@ -6,88 +6,92 @@ import javafx.collections.ObservableList;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 
 public class AppointmentsViewModel {
 
-    private int appointmentId;
-    private LocalDate date;
-    private LocalTime start;
-    private LocalTime end;
-    private String type;
-    private String customerName;
-    private String userName;
-    private ObservableList<AppointmentsViewModel> appointments = FXCollections.observableArrayList();
+    private final int appointmentId;
+    private final LocalDate date;
+    private final LocalTime start;
+    private final LocalTime end;
+    private final String type;
+    private final String customerName;
+    private final String userName;
+
+    public AppointmentsViewModel(int appointmentId, LocalDate date, LocalTime start, LocalTime end, String type,
+                                 String customerName, String userName) {
+        this.appointmentId = appointmentId;
+        this.date = date;
+        this.start = start;
+        this.end = end;
+        this.type = type;
+        this.customerName = customerName;
+        this.userName = userName;
+    }
 
     public int getAppointmentId() {
         return appointmentId;
-    }
-
-    public void setAppointmentId(int appointmentId) {
-        this.appointmentId = appointmentId;
     }
 
     public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
     public LocalTime getStart() {
         return start;
-    }
-
-    public void setStart(LocalTime start) {
-        this.start = start;
     }
 
     public LocalTime getEnd() {
         return end;
     }
 
-    public void setEnd(LocalTime end) {
-        this.end = end;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getCustomerName() {
         return customerName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
     public String getUserName() {
         return userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    public ObservableList<AppointmentsViewModel> getAppointments() {
-        return appointments;
-    }
-
-    public void setAppointments() {
+    public static ObservableList<AppointmentsViewModel> getAppointments() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
-        this.appointments = dataSource.appointmentsQuery();
+        ArrayList<Appointment> appointments = dataSource.queryAppointment();
+        return buildAppointmentsViewList(appointments);
     }
 
-    public void deleteAppointmentFromDB(int appointmentId) {
+    private static ObservableList<AppointmentsViewModel> buildAppointmentsViewList(ArrayList<Appointment> appointments) {
+        ObservableList<AppointmentsViewModel> appointmentsViewList = FXCollections.observableArrayList();
+        for (Appointment appointment: appointments) {
+            AppointmentsViewModel appointmentsViewModel = new AppointmentsViewModel(
+                    appointment.getAppointmentId(),
+                    appointment.getStart().toLocalDate(),
+                    appointment.getStart().toLocalTime(),
+                    appointment.getEnd().toLocalTime(),
+                    appointment.getType(),
+                    appointment.getCustomer().getCustomerName(),
+                    appointment.getUser().getUserName());
+            appointmentsViewList.add(appointmentsViewModel);
+        }
+        return appointmentsViewList;
+    }
+
+    public static void deleteAppointmentFromDB(int appointmentId) {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
         dataSource.deleteFromTbl("appointment", "appointment", appointmentId);
+    }
+
+    public static void exit() {
+        DataSource dataSource = DataSource.getInstance();
+        if (dataSource != null) {
+            dataSource.closeConnection();
+        }
+        System.exit(0);
     }
 
 }

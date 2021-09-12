@@ -1,31 +1,29 @@
 package model;
 
 import database.DataSource;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public class ReportByAppointmentTypeModel {
-    private String month;
-    private int count;
+    private final String month;
+    private final int count;
+
+    public ReportByAppointmentTypeModel(String month, int count) {
+        this.month = month;
+        this.count = count;
+    }
 
     public String getMonth() {
         return month;
-    }
-
-    public void setMonth(String month) {
-        this.month = month;
     }
 
     public int getCount() {
         return count;
     }
 
-    public void setCount(int count) {
-        this.count = count;
-    }
-
-    public ObservableList<ReportByAppointmentTypeModel> getReportByAppointmentType() {
+    public static ObservableList<ReportByAppointmentTypeModel> getReportByAppointmentType() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
-        return (ObservableList<ReportByAppointmentTypeModel>) dataSource.numberAppointmentTypesByMonthQuery();
+        return FXCollections.observableArrayList(dataSource.numberAppointmentTypesByMonthQuery());
     }
 }

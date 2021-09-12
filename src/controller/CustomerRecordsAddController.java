@@ -5,11 +5,6 @@
  */
 package controller;
 
-import java.io.IOException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.ResourceBundle;
-
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,17 +17,21 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import model.CustomerRecordsAddModel;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.Objects;
+import java.util.ResourceBundle;
+
 /**
  * FXML Controller class
  *
  * @author robertthomure
  */
 public class CustomerRecordsAddController implements Initializable {
-    CustomerRecordsAddModel customerRecordsAddModel = new CustomerRecordsAddModel();
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -58,7 +57,7 @@ public class CustomerRecordsAddController implements Initializable {
     }
 
     @FXML
-    void onActionSave(ActionEvent event) throws IOException, SQLException {
+    void onActionSave(ActionEvent event) throws IOException {
         String name = nameTxt.getText().trim();
         String address = addressTxt.getText().trim();
         String city = cityTxt.getText().trim();
@@ -66,16 +65,13 @@ public class CustomerRecordsAddController implements Initializable {
         String phone = phoneNumberTxt.getText().trim();
         try {
             if(name.isEmpty() || address.isEmpty() || city.isEmpty() || country.isEmpty() || phone.isEmpty()){
-                throw new IllegalArgumentException("one or more required fields are empty");
+                throw new IllegalArgumentException("Please enter info for all fields");
             }
             try {
+
                 Long.parseLong(phone); // used to verify only numbers input for phone#
-                customerRecordsAddModel.setCustomerName(name);
-                customerRecordsAddModel.setAddress(address);
-                customerRecordsAddModel.setCity(city);
-                customerRecordsAddModel.setCountry(country);
-                customerRecordsAddModel.setPhone(phone);
-                customerRecordsAddModel.addCustomerToDB(customerRecordsAddModel);
+                CustomerRecordsAddModel newCustomer = new CustomerRecordsAddModel(name, address, city, country, phone);
+                newCustomer.addCustomerToDB(newCustomer);
                 switchScenes(event, "CustomerRecordsView");
             } catch(NumberFormatException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -86,7 +82,7 @@ public class CustomerRecordsAddController implements Initializable {
         } catch(IllegalArgumentException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setContentText("Please enter info for all fields");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }

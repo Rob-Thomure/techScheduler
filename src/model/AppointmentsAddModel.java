@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 
 import java.time.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class AppointmentsAddModel {
 
@@ -64,8 +65,18 @@ public class AppointmentsAddModel {
     public static ObservableList<String> getCustomers() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
-        return dataSource.customerQuery();
+        List<Customer> customers = dataSource.queryCustomer();
+        return buildCustomerNameList(customers);
     }
+
+    private static ObservableList<String> buildCustomerNameList(List<Customer> customers) {
+        ObservableList<String> customerNameList = FXCollections.observableArrayList();
+        for (Customer customer: customers) {
+            customerNameList.add(customer.getCustomerName());
+        }
+        return customerNameList;
+    }
+
 
     public LocalDateTime getStart() {
         return start;
@@ -78,7 +89,16 @@ public class AppointmentsAddModel {
     public static ObservableList<String> getUsers() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
-        return dataSource.userQuery();
+        List<User> users = dataSource.queryUser();
+        return buildUserNameList(users);
+    }
+
+    private static ObservableList<String> buildUserNameList(List<User> users) {
+        ObservableList<String> userNameList = FXCollections.observableArrayList();
+        for (User user: users) {
+            userNameList.add(user.getUserName());
+        }
+        return userNameList;
     }
 
     public int getCustomerIdFromDB(String customerName) {
@@ -98,7 +118,8 @@ public class AppointmentsAddModel {
         dataSource.getConnection();
         ArrayList<Appointment> appointments = dataSource.queryAppointment();
         for (Appointment appointment : appointments) {
-            if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
+            if(this.customerId == appointment.getCustomer().getCustomerId() ||
+                    this.userId == appointment.getUser().getUserId()) {
                 if ((this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd()))
                         || (this.end.isAfter(appointment.getStart()) && this.end.isBefore(appointment.getEnd()))
                         || (this.start.isEqual(appointment.getStart()))

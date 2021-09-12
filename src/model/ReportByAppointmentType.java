@@ -10,8 +10,8 @@ package model;
  * @author robertthomure
  */
 public class ReportByAppointmentType {
-    private String month;
-    private int count;
+    private final String month;
+    private final int count;
 
     public ReportByAppointmentType(String month, int count) {
         this.month = month;
@@ -22,15 +22,8 @@ public class ReportByAppointmentType {
         return month;
     }
 
-    public void setMonth(String month) {
-        this.month = month;
-    }
-
     public int getCount() {
         return count;
     }
 
-    public void setCount(int count) {
-        this.count = count;
-    }
 }

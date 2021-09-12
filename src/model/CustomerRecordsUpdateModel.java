@@ -3,50 +3,38 @@ package model;
 import database.DataSource;
 
 public class CustomerRecordsUpdateModel {
-    private int customerId;
-    private int addressId;
-    private String customerName;
-    private String address;
-    private String phone;
+    private final int customerId;
+    private final int addressId;
+    private final String customerName;
+    private final String address;
+    private final String phone;
+
+    public CustomerRecordsUpdateModel(int customerId, int addressId, String customerName, String address, String phone) {
+        this.customerId = customerId;
+        this.addressId = addressId;
+        this.customerName = customerName;
+        this.address = address;
+        this.phone = phone;
+    }
 
     public int getCustomerId() {
         return customerId;
-    }
-
-    public void setCustomerId(int customerId) {
-        this.customerId = customerId;
     }
 
     public int getAddressId() {
         return addressId;
     }
 
-    public void setAddressId(int addressId) {
-        this.addressId = addressId;
-    }
-
     public String getAddress() {
         return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
     }
 
     public String getPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
-    }
-
     public String getCustomerName() {
         return customerName;
-    }
-
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
     }
 
     public void updateCustomerDB(CustomerRecordsUpdateModel customerRecordsUpdateModel) {

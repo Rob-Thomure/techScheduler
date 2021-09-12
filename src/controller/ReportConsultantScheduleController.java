@@ -22,9 +22,9 @@ import model.ReportConsultantScheduleModel;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -33,12 +33,10 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class ReportConsultantScheduleController implements Initializable {
-    ReportConsultantScheduleModel reportConsultantScheduleModel = new ReportConsultantScheduleModel();
-
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -68,9 +66,9 @@ public class ReportConsultantScheduleController implements Initializable {
     private ComboBox<String> consultantComboBox;
 
     @FXML
-    void onActionconsultantComboBox(ActionEvent event) throws SQLException {
+    void onActionconsultantComboBox() {
         String consultant = consultantComboBox.getValue();
-        ObservableList<ReportConsultantScheduleModel> appointments = reportConsultantScheduleModel.getAppointments();
+        ObservableList<ReportConsultantScheduleModel> appointments = ReportConsultantScheduleModel.getAppointments(consultant);
         reportTable.setItems(appointments);
         dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
         startTimeCol.setCellValueFactory(new PropertyValueFactory<>("start"));
@@ -90,6 +88,6 @@ public class ReportConsultantScheduleController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        consultantComboBox.setItems(reportConsultantScheduleModel.buildUserComboBoxList());
+        consultantComboBox.setItems(ReportConsultantScheduleModel.buildUserComboBoxList());
     }
 }

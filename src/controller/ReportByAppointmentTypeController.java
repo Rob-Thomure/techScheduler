@@ -20,6 +20,7 @@ import model.ReportByAppointmentTypeModel;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -28,12 +29,12 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class ReportByAppointmentTypeController implements Initializable {
-    ReportByAppointmentTypeModel reportByAppointmentTypeModel = new ReportByAppointmentTypeModel();
+    //ReportByAppointmentTypeModel reportByAppointmentTypeModel = new ReportByAppointmentTypeModel();
 
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -57,7 +58,7 @@ public class ReportByAppointmentTypeController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        reportTable.setItems(reportByAppointmentTypeModel.getReportByAppointmentType());
+        reportTable.setItems(ReportByAppointmentTypeModel.getReportByAppointmentType());
         monthCol.setCellValueFactory(new PropertyValueFactory<>("month"));
         numberApptTypeCol.setCellValueFactory(new PropertyValueFactory<>("count"));
     }

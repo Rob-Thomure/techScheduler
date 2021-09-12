@@ -20,7 +20,7 @@ import model.CustomerRecordsViewModel;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -29,11 +29,11 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class CustomerRecordsUpdateController implements Initializable {
-    CustomerRecordsUpdateModel customerRecordsUpdateModel = new CustomerRecordsUpdateModel();
+    CustomerRecordsUpdateModel customerRecordsUpdateModel;
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -59,9 +59,9 @@ public class CustomerRecordsUpdateController implements Initializable {
     }
 
     @FXML
-    void onActionSave(ActionEvent event) throws IOException, SQLException {
-        int customerId = Integer.parseInt(customerIdTxt.getText());
-        int addressId = Integer.parseInt(addressIdTxt.getText());
+    void onActionSave(ActionEvent event) throws IOException {
+        int customerId = customerRecordsUpdateModel.getCustomerId();
+        int addressId = customerRecordsUpdateModel.getAddressId();
         String customerName = nameTxt.getText().trim();
         String address = addressTxt.getText().trim();
         String phone = phoneNumberTxt.getText().trim();
@@ -72,10 +72,9 @@ public class CustomerRecordsUpdateController implements Initializable {
             try {
                 Long.parseLong(phone); // used to verify only numbers input for phone#
                 //update tables
-                customerRecordsUpdateModel.setCustomerName(customerName);
-                customerRecordsUpdateModel.setAddress(address);
-                customerRecordsUpdateModel.setPhone(phone);
-                customerRecordsUpdateModel.updateCustomerDB(customerRecordsUpdateModel);
+                CustomerRecordsUpdateModel updatedCustomer = new CustomerRecordsUpdateModel(customerId, addressId,
+                        customerName, address, phone);
+                updatedCustomer.updateCustomerDB(updatedCustomer);
                 //switch scene
                 switchScenes(event, "CustomerRecordsView");
             } catch(NumberFormatException e) {
@@ -87,19 +86,19 @@ public class CustomerRecordsUpdateController implements Initializable {
         } catch(IllegalArgumentException e) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
-            alert.setContentText("Please enter info for all fields");
+            alert.setContentText(e.getMessage());
             alert.showAndWait();
         }
     }
 
     public void sendCustomer(CustomerRecordsViewModel customer){
+        customerRecordsUpdateModel = new CustomerRecordsUpdateModel(customer.getCustomerId(), customer.getAddressId(),
+                customer.getCustomerName(), customer.getAddress(), customer.getPhone());
         nameTxt.setText(customer.getCustomerName());
         addressTxt.setText(customer.getAddress());
         phoneNumberTxt.setText(customer.getPhone());
         customerIdTxt.setText(String.valueOf(customer.getCustomerId()));
         addressIdTxt.setText(String.valueOf(customer.getAddressId()));
-        customerRecordsUpdateModel.setCustomerId(customer.getCustomerId());
-        customerRecordsUpdateModel.setAddressId(customer.getAddressId());
     }
 
     /**

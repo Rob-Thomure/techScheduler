@@ -10,8 +10,8 @@ package model;
  * @author robertthomure
  */
 public class ReportTotalAppointments {
-    private String consultant;
-    private int numberOfAppointments;
+    private final String consultant;
+    private final int numberOfAppointments;
 
     public ReportTotalAppointments(String consultant, int numberOfAppointments) {
         this.consultant = consultant;
@@ -22,15 +22,7 @@ public class ReportTotalAppointments {
         return consultant;
     }
 
-    public void setConsultant(String consultant) {
-        this.consultant = consultant;
-    }
-
     public int getNumberOfAppointments() {
         return numberOfAppointments;
-    }
-
-    public void setNumberOfAppointments(int numberOfAppointments) {
-        this.numberOfAppointments = numberOfAppointments;
     }
 }

@@ -147,7 +147,8 @@ public class AppointmentsUpdateModel {
         dataSource.getConnection();
         ArrayList<Appointment> appointments = dataSource.queryAppointment();
         for (Appointment appointment : appointments) {
-            if(this.customerId == appointment.getCustomerId() || this.userId == appointment.getUserId()) {
+            if(this.customerId == appointment.getCustomer().getCustomerId() ||
+                    this.userId == appointment.getUser().getUserId()) {
                 if ((this.start.isAfter(appointment.getStart()) && this.start.isBefore(appointment.getEnd()))
                         || (this.end.isAfter(appointment.getStart()) && this.end.isBefore(appointment.getEnd()))
                         || (this.start.isEqual(appointment.getStart()))

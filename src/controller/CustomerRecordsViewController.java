@@ -5,8 +5,6 @@
  */
 package controller;
 
-//import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
-
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -24,8 +22,8 @@ import model.CustomerRecordsViewModel;
 
 import java.io.IOException;
 import java.net.URL;
-import java.sql.SQLException;
 import java.sql.SQLIntegrityConstraintViolationException;
+import java.util.Objects;
 import java.util.ResourceBundle;
 
 /**
@@ -34,12 +32,11 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class CustomerRecordsViewController implements Initializable {
-    CustomerRecordsViewModel customerRecordsViewModel = new CustomerRecordsViewModel();
 
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
-        Parent scene = FXMLLoader.load(getClass().getResource("/view/" + view + ".fxml"));
+        Parent scene = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/view/" + view + ".fxml")));
         stage.setScene(new Scene(scene));
         stage.show();
     }
@@ -62,17 +59,17 @@ public class CustomerRecordsViewController implements Initializable {
     }
 
     @FXML
-    void onActionDelete(ActionEvent event) throws SQLException, IOException {
+    void onActionDelete(ActionEvent event) throws IOException {
         try {
             //get selected row on the customer table view
             CustomerRecordsViewModel customer = customerRecordsTableView.getSelectionModel().getSelectedItem();
-            customerRecordsViewModel.setCustomerId(customer.getCustomerId());
-            customerRecordsViewModel.setAddressId(customer.getAddressId());
+
+
             try {
-                if (customerRecordsViewModel.checkIfHasAppointmentScheduled()) {
+                if (customer.hasAppointmentScheduled(customer.getCustomerName())) {
                     throw new SQLIntegrityConstraintViolationException("has an appointment scheduled");
                 }
-                customerRecordsViewModel.deleteCustomerFromDB();
+                customer.deleteCustomerFromDB(customer.getCustomerName());
                 switchScenes(event, "CustomerRecordsView");
             } catch(SQLIntegrityConstraintViolationException e) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -121,7 +118,7 @@ public class CustomerRecordsViewController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        ObservableList<CustomerRecordsViewModel> customers = customerRecordsViewModel.getCustomers();
+        ObservableList<CustomerRecordsViewModel> customers = CustomerRecordsViewModel.buildCustomerList();
         customerRecordsTableView.setItems(customers);
         nameCol.setCellValueFactory( new PropertyValueFactory<>("customerName") );
         addressCol.setCellValueFactory( new PropertyValueFactory<>("address") );

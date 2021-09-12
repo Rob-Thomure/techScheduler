@@ -115,7 +115,6 @@ public class DataSource {
         return connection;
     }
 
-
     public void closeConnection() {
         try {
             if (connection != null) {
@@ -126,68 +125,6 @@ public class DataSource {
         }
     }
 
-    public ObservableList<LoginModel> loginQuery() {
-        try(PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + TABLE_USER);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            ObservableList<LoginModel> loginAccounts = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                LoginModel login = new LoginModel();
-                login.setUserId(resultSet.getInt(COLUMN_USER_USER_ID));
-                login.setUserName(resultSet.getString(COLUMN_USER_USER_NAME));
-                login.setPassword(resultSet.getString(COLUMN_USER_PASSWORD));
-                loginAccounts.add(login);
-            }
-            return loginAccounts;
-        } catch(SQLException e) {
-            System.out.println("DataSource.queryLogin failed " + e.getMessage());
-        }
-        return null;
-    }
-
-    public ObservableList<LoginModel> immediateAppointmentsQuery() {
-        try(PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + TABLE_APPOINTMENT);
-            ResultSet resultSet = preparedStatement.executeQuery()) {
-            ObservableList<LoginModel> appointments = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                LoginModel appointment = new LoginModel();
-                appointment.setStart(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START)));
-                appointment.setEnd(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END)));
-                appointments.add(appointment);
-            }
-            return appointments;
-        } catch (SQLException e) {
-            System.out.println("immediateAppointmentQuery failed " + e.getMessage());
-        }
-        return null;
-    }
-
-    public ObservableList<AppointmentsViewModel> appointmentsQuery() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT appointment.appointmentId, " +
-                "appointment.customerId, appointment.userId, customer.customerName, user.userName, appointment.type, " +
-                "appointment.start, appointment.end " +
-                "FROM appointment " +
-                "INNER JOIN customer ON appointment.customerId = customer.customerId " +
-                "INNER JOIN user ON appointment.userId = user.userId");
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            ObservableList<AppointmentsViewModel> appointments = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                AppointmentsViewModel appointmentsViewModel = new AppointmentsViewModel();
-                appointmentsViewModel.setAppointmentId(resultSet.getInt(COLUMN_APPOINTMENT_APPOINTMENT_ID));
-                appointmentsViewModel.setDate(LocalDate.from(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START))));
-                appointmentsViewModel.setStart(LocalTime.from(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START))));
-                appointmentsViewModel.setEnd(LocalTime.from(convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END))));
-                appointmentsViewModel.setType(resultSet.getString(COLUMN_APPOINTMENT_TYPE));
-                appointmentsViewModel.setCustomerName(resultSet.getString(COLUMN_CUSTOMER_CUSTOMER_NAME));
-                appointmentsViewModel.setUserName(resultSet.getString(COLUMN_USER_USER_NAME));
-                appointments.add(appointmentsViewModel);
-            }
-            return appointments;
-        } catch (SQLException e) {
-            System.out.println("appointmentsQuery failed " + e.getMessage());
-        }
-        return null;
-    }
-
     public void deleteFromTbl(String tbl, String tblColumn,int id){
         String deleteStatement = "DELETE FROM " +tbl + " WHERE " + tblColumn + " = ?";
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteStatement)){
@@ -196,34 +133,6 @@ public class DataSource {
         } catch (SQLException e) {
             System.out.println("delete from table " + tbl + " failed " + e.getMessage());
         }
-    }
-
-    public ObservableList<String> customerQuery() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + TABLE_CUSTOMER);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-            ObservableList<String> customers = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                customers.add(resultSet.getString("customerName"));
-            }
-            return customers;
-        } catch (SQLException e) {
-            System.out.println("customerQuery failed " + e.getMessage());
-        }
-        return null;
-    }
-
-    public ObservableList<String> userQuery() {
-        try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + TABLE_USER);
-            ResultSet resultSet = preparedStatement.executeQuery()){
-            ObservableList users = FXCollections.observableArrayList();
-            while (resultSet.next()) {
-                users.add(resultSet.getString(COLUMN_USER_USER_NAME));
-            }
-            return users;
-        } catch (SQLException e) {
-            System.out.println("userQuery failed " + e.getMessage());
-        }
-        return null;
     }
 
     public int customerIdQuery(String customerName) {
@@ -243,6 +152,53 @@ public class DataSource {
         return customerId;
     }
 
+    public int addressIdQuery(int customerId) {
+        int addressId = -1;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT addressId FROM customer WHERE customerId = ?")){
+            preparedStatement.setInt(1, customerId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            addressId = resultSet.getInt(COLUMN_CUSTOMER_ADDRESS_ID);
+            return addressId;
+        } catch (SQLException e) {
+            System.out.println("addressIdQuery failed " + e.getMessage());
+        }
+        return addressId;
+    }
+
+    public int cityIdQuery(int addressId) {
+        int cityId = -1;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT cityId FROM address WHERE addressId = ?")){
+            preparedStatement.setInt(1, addressId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            cityId = resultSet.getInt(COLUMN_ADDRESS_CITY_ID);
+            return cityId;
+        } catch (SQLException e) {
+            System.out.println("addressIdQuery failed " + e.getMessage());
+        }
+        return cityId;
+    }
+
+    public int countryIdQuery(int cityId) {
+        int countryId = -1;
+        try (PreparedStatement preparedStatement = connection.prepareStatement(
+                "SELECT countryId FROM city WHERE cityId = ?")){
+            preparedStatement.setInt(1, cityId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            resultSet.next();
+            countryId = resultSet.getInt(COLUMN_CITY_COUNTRY_ID);
+            return countryId;
+        } catch (SQLException e) {
+            System.out.println("addressIdQuery failed " + e.getMessage());
+        }
+        return countryId;
+    }
+
+
+
 
     public int userIdQuery(String userName) {
         int userId = -1;
@@ -261,6 +217,8 @@ public class DataSource {
         return userId;
     }
 
+
+
     public void insertAppointment(AppointmentsAddModel appointment) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO appointment(customerId, userId, title, description, location, contact, type, url, start," +
@@ -278,9 +236,6 @@ public class DataSource {
             preparedStatement.setString(11, "Admin");
             preparedStatement.setString(12, "Admin");
             preparedStatement.execute();
-
-
-
         } catch (SQLException e) {
             System.out.println("insertAppointment failed " + e.getMessage());
         }
@@ -313,8 +268,7 @@ public class DataSource {
             try (PreparedStatement preparedStatement2 = connection.prepareStatement("SELECT LAST_INSERT_ID() FROM country");
                     ResultSet resultSet = preparedStatement2.executeQuery()){
                 resultSet.next();
-                int countryId = resultSet.getInt("countryId");
-                return countryId;
+                return resultSet.getInt(1);
             }
         } catch (SQLException e) {
             System.out.println("insertCountry failed " + e.getMessage());
@@ -333,8 +287,7 @@ public class DataSource {
             try (PreparedStatement preparedStatement2 = connection.prepareStatement("SELECT LAST_INSERT_ID() FROM city");
                     ResultSet resultSet = preparedStatement2.executeQuery()){
                 resultSet.next();
-                int cityId = resultSet.getInt("cityId");
-                return cityId;
+                return resultSet.getInt(1);
             }
         } catch (SQLException e) {
             System.out.println("insertCity failed " + e.getMessage());
@@ -357,8 +310,7 @@ public class DataSource {
             try (PreparedStatement preparedStatement2 = connection.prepareStatement("SELECT LAST_INSERT_ID() FROM address");
                     ResultSet resultSet = preparedStatement2.executeQuery()){
                 resultSet.next();
-                int addressId = resultSet.getInt("addressId");
-                return addressId;
+                return resultSet.getInt(1);
             }
         } catch (SQLException e) {
             System.out.println("insertAddress failed " + e.getMessage());
@@ -404,13 +356,6 @@ public class DataSource {
         }
     }
 
-
-
-
-
-
-//**********************************************************************************************************************
-
     public ArrayList<User> queryUser() {
         try (PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM " + TABLE_USER);
             ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -427,10 +372,9 @@ public class DataSource {
 
     public User constructUser(ResultSet resultSet) {
         try {
-            User user = new User(resultSet.getInt(COLUMN_USER_USER_ID),
+            return new User(resultSet.getInt(COLUMN_USER_USER_ID),
                     resultSet.getString(COLUMN_USER_USER_NAME),
                     resultSet.getString(COLUMN_USER_PASSWORD));
-            return user;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -466,9 +410,8 @@ public class DataSource {
             Address address = new Address(resultSet.getInt(COLUMN_ADDRESS_ADDRESS_ID),
                     resultSet.getString(COLUMN_ADDRESS_ADDRESS),
                     resultSet.getString(COLUMN_ADDRESS_PHONE), city);
-            Customer customer = new Customer(resultSet.getInt(COLUMN_CUSTOMER_CUSTOMER_ID),
+            return new Customer(resultSet.getInt(COLUMN_CUSTOMER_CUSTOMER_ID),
                     resultSet.getString(COLUMN_CUSTOMER_CUSTOMER_NAME), address);
-            return customer;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -499,21 +442,20 @@ public class DataSource {
             }
             return appointments;
         } catch (SQLException e) {
-            System.out.println("Database query on appointments failed " + e.getStackTrace());
+            System.out.println("Database query on appointments failed " + e.getMessage());
         }
         return null;
     }
 
     public Appointment constructAppointment(ResultSet resultSet, Customer customer, User user) {
         try {
-            Appointment appointment = new Appointment(resultSet.getInt(COLUMN_APPOINTMENT_APPOINTMENT_ID),
+            return new Appointment(resultSet.getInt(COLUMN_APPOINTMENT_APPOINTMENT_ID),
                     resultSet.getString(COLUMN_APPOINTMENT_TYPE),
                     convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_START)),
                     convertToZonedLocalDateTime(resultSet.getTimestamp(COLUMN_APPOINTMENT_END)),
                     customer, user);
-            return appointment;
         } catch (SQLException e) {
-            System.out.println(e.getStackTrace());
+            System.out.println(e.getMessage());
         }
         return null;
     }
@@ -521,14 +463,13 @@ public class DataSource {
     public LocalDateTime convertToZonedLocalDateTime(Timestamp timestamp) {
         ZoneId zoneId = ZoneId.systemDefault();
         LocalDateTime localDateTime = timestamp.toLocalDateTime();
-        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId.of("UTC")).withZoneSameInstant(zoneId);
-        LocalDateTime zonedLocalDateTime = zonedDateTime.toLocalDateTime();
-        return zonedLocalDateTime;
+        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of("UTC")).withZoneSameInstant(zoneId);
+        return zonedDateTime.toLocalDateTime();
     }
 
     public LocalDateTime convertToUTC(LocalDateTime localDateTime) {
         ZoneId zoneId = ZoneId.systemDefault();
-        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId).withZoneSameInstant(zoneId.of("UTC"));
+        ZonedDateTime zonedDateTime = localDateTime.atZone(zoneId).withZoneSameInstant(ZoneId.of("UTC"));
         return zonedDateTime.toLocalDateTime();
     }
 
@@ -539,10 +480,9 @@ public class DataSource {
                 ResultSet resultSet = preparedStatement.executeQuery()) {
             ArrayList<ReportByAppointmentTypeModel> reports = new ArrayList<>();
             while (resultSet.next()) {
-                ReportByAppointmentTypeModel reportByAppointmentTypeModel = new ReportByAppointmentTypeModel();
-                reportByAppointmentTypeModel.setMonth(resultSet.getString("MONTHNAME(start)"));
-                reportByAppointmentTypeModel.setCount(resultSet.getInt("COUNT(DISTINCT type)"));
-                reports.add(reportByAppointmentTypeModel);
+                ReportByAppointmentTypeModel report = new ReportByAppointmentTypeModel(
+                        resultSet.getString("MONTHNAME(start)"), resultSet.getInt("COUNT(DISTINCT type)"));
+                reports.add(report);
             }
             return reports;
         } catch (SQLException e) {
@@ -555,16 +495,16 @@ public class DataSource {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "SELECT appointment.appointmentId, appointment.type, appointment.start, appointment.end, " +
                         "user.userId, user.userName, user.password, " +
-                        "customer.customerId, customer.customerName," +
-                        "address.addressId, address.address, address.phone," +
+                        "customer.customerId, customer.customerName, " +
+                        "address.addressId, address.address, address.phone, " +
                         "city.cityId, city.city, " +
                         "country.countryId, country.country " +
-                        "FROM U04ltA.appointment " +
-                        "INNER JOIN U04ltA.user ON appointment.userId = user.userId " +
-                        "INNER JOIN U04ltA.customer ON appointment.customerId = customer.customerId " +
+                        "FROM appointment " +
+                        "INNER JOIN user ON appointment.userId = user.userId " +
+                        "INNER JOIN customer ON appointment.customerId = customer.customerId " +
                         "INNER JOIN address ON customer.addressId  = address.addressId " +
                         "INNER JOIN city ON address.cityId = city.cityId " +
-                        "INNER JOIN country ON city.countryId = country.countryId" +
+                        "INNER JOIN country ON city.countryId = country.countryId " +
                         "WHERE user.userName = ?")) {
             preparedStatement.setString(1, userName);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -591,10 +531,10 @@ public class DataSource {
                 ResultSet resultSet = preparedStatement.executeQuery()) {
             ArrayList<ReportTotalAppointmentsByConsultantModel> appointments = new ArrayList<>();
             while (resultSet.next()) {
-                ReportTotalAppointmentsByConsultantModel reportTotalAppointmentsByConsultnatModel = new ReportTotalAppointmentsByConsultantModel();
-                reportTotalAppointmentsByConsultnatModel.setUserName(resultSet.getString("userName"));
-                reportTotalAppointmentsByConsultnatModel.setCount(resultSet.getInt("COUNT(appointment.appointmentId)"));
-                appointments.add(reportTotalAppointmentsByConsultnatModel);
+                ReportTotalAppointmentsByConsultantModel report = new ReportTotalAppointmentsByConsultantModel(
+                        resultSet.getString("userName"),
+                        resultSet.getInt("COUNT(appointment.appointmentId)"));
+                appointments.add(report);
             }
             return appointments;
         } catch (SQLException e) {
@@ -602,8 +542,4 @@ public class DataSource {
         }
         return null;
     }
-
-
-
-
 }

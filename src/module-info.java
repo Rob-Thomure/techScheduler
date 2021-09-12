@@ -7,6 +7,6 @@ module JavaFxApplication {
     requires java.sql;
 
     opens model;
-    opens sample;
+    opens main;
     opens controller;
 }

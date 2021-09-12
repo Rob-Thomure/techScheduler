@@ -8,7 +8,6 @@ package controller;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
-
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -29,8 +28,6 @@ import model.ReportTotalAppointmentsByConsultantModel;
  * @author robertthomure
  */
 public class ReportTotalAppointmentsByConsultantController implements Initializable {
-    ReportTotalAppointmentsByConsultantModel reportTotalAppointmentsByConsultantModel = new ReportTotalAppointmentsByConsultantModel();
-
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
@@ -58,7 +55,7 @@ public class ReportTotalAppointmentsByConsultantController implements Initializa
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        ObservableList<ReportTotalAppointmentsByConsultantModel> appointmentReports = reportTotalAppointmentsByConsultantModel.getAppointmentCountReport();
+        ObservableList<ReportTotalAppointmentsByConsultantModel> appointmentReports = ReportTotalAppointmentsByConsultantModel.getAppointmentCountReport();
         reportTable.setItems(appointmentReports);
         consultantCol.setCellValueFactory(new PropertyValueFactory<>("userName"));
         numberOfAppointmentsCol.setCellValueFactory(new PropertyValueFactory<>("count"));

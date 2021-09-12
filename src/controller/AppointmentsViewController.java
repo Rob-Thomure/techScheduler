@@ -5,7 +5,6 @@
  */
 package controller;
 
-import database.DataSource;
 import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -35,8 +34,6 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class AppointmentsViewController implements Initializable {
-    DataSource dataSource = DataSource.getInstance();
-    AppointmentsViewModel appointmentsViewModel = new AppointmentsViewModel();
 
     @FXML
     private TableView<AppointmentsViewModel> appointmentsTableView;
@@ -63,10 +60,10 @@ public class AppointmentsViewController implements Initializable {
     private TableColumn<Appointment, String> consultantCol;
 
     @FXML
-    void onActionMonthView(ActionEvent event) {
+    void onActionMonthView() {
         LocalDate today = LocalDate.now();
         LocalDate oneMonth = today.plusMonths(1);
-        FilteredList<AppointmentsViewModel> monthViewList = new FilteredList<>(appointmentsViewModel.getAppointments());
+        FilteredList<AppointmentsViewModel> monthViewList = new FilteredList<>(AppointmentsViewModel.getAppointments());
         // Lambda expression used to filter appointments efficiently
         monthViewList.setPredicate(row -> {
             LocalDate day = row.getDate() ;
@@ -76,15 +73,15 @@ public class AppointmentsViewController implements Initializable {
     }
 
     @FXML
-    void onActionViewAll(ActionEvent event) {
-        appointmentsTableView.setItems(appointmentsViewModel.getAppointments());
+    void onActionViewAll() {
+        appointmentsTableView.setItems(AppointmentsViewModel.getAppointments());
     }
 
     @FXML
-    void onActionWeekView(ActionEvent event) {
+    void onActionWeekView() {
         LocalDate today = LocalDate.now();
         LocalDate oneWeek = today.plusDays(7);
-        FilteredList<AppointmentsViewModel> weekViewList = new FilteredList<>(appointmentsViewModel.getAppointments());
+        FilteredList<AppointmentsViewModel> weekViewList = new FilteredList<>(AppointmentsViewModel.getAppointments());
         // Lambda expression used to filter appointments efficiently
         weekViewList.setPredicate(row -> {
             LocalDate day = row.getDate() ;
@@ -104,7 +101,7 @@ public class AppointmentsViewController implements Initializable {
         try {
             AppointmentsViewModel appointmentRow = appointmentsTableView.getSelectionModel().getSelectedItem();
             int appointmentId = appointmentRow.getAppointmentId();
-            appointmentsViewModel.deleteAppointmentFromDB(appointmentId);
+            AppointmentsViewModel.deleteAppointmentFromDB(appointmentId);
             //reload the scene to show that row has been removed from table
             NewScene newScene = new NewScene(event, "AppointmentsView");
             newScene.switchScenes();
@@ -151,11 +148,8 @@ public class AppointmentsViewController implements Initializable {
     }
 
     @FXML
-    void onActionExit(ActionEvent event) {
-        if (dataSource != null) {
-            dataSource.closeConnection();
-        }
-        System.exit(0);
+    void onActionExit() {
+        AppointmentsViewModel.exit();
     }
 
     /**
@@ -163,8 +157,7 @@ public class AppointmentsViewController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        appointmentsViewModel.setAppointments();
-        appointmentsTableView.setItems(appointmentsViewModel.getAppointments());
+        appointmentsTableView.setItems(AppointmentsViewModel.getAppointments());
         idCol.setCellValueFactory(new PropertyValueFactory<>("appointmentId"));
         dateCol.setCellValueFactory(new PropertyValueFactory<>("date"));
         startTimeCol.setCellValueFactory(new PropertyValueFactory<>("start"));

@@ -3,44 +3,48 @@ package model;
 import database.DataSource;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
 public class ReportConsultantScheduleModel {
 
-    private LocalDate date;
-    private LocalTime start;
-    private LocalTime end;
-    private String type;
-    private String customerName;
-    private String userName;
+    private final LocalDate date;
+    private final LocalTime start;
+    private final LocalTime end;
+    private final String type;
+    private final String customerName;
+    private final String userName;
 
-    public ObservableList<ReportConsultantScheduleModel> getAppointments() {
+    public ReportConsultantScheduleModel(LocalDate date, LocalTime start, LocalTime end, String type,
+                                         String customerName, String userName) {
+        this.date = date;
+        this.start = start;
+        this.end = end;
+        this.type = type;
+        this.customerName = customerName;
+        this.userName = userName;
+    }
+
+    public static ObservableList<ReportConsultantScheduleModel> getAppointments(String userName) {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
-        ArrayList<Appointment> appointments = dataSource.scheduleForEachConsultantQuery(this.userName);
+        ArrayList<Appointment> appointments = dataSource.scheduleForEachConsultantQuery(userName);
         ObservableList<ReportConsultantScheduleModel> observableListAppointments = FXCollections.observableArrayList();
         for (Appointment appointment : appointments) {
-            ReportConsultantScheduleModel reportConsultantScheduleModel = new ReportConsultantScheduleModel();
-            reportConsultantScheduleModel.setDate(appointment.getStart().toLocalDate());
-            reportConsultantScheduleModel.setStart(appointment.getStart().toLocalTime());
-            reportConsultantScheduleModel.setEnd(appointment.getEnd().toLocalTime());
-            reportConsultantScheduleModel.setType(appointment.getType());
-            reportConsultantScheduleModel.setCustomerName(appointment.getCustomerName());
-            reportConsultantScheduleModel.setUserName(appointment.getUserName());
-            observableListAppointments.add(reportConsultantScheduleModel);
+            ReportConsultantScheduleModel report = new ReportConsultantScheduleModel(
+                    appointment.getStart().toLocalDate(),
+                    appointment.getStart().toLocalTime(),
+                    appointment.getEnd().toLocalTime(),
+                    appointment.getType(),
+                    appointment.getCustomer().getCustomerName(),
+                    appointment.getUser().getUserName());
+            observableListAppointments.add(report);
         }
         return observableListAppointments;
     }
 
-
-
-
-
-
-    public ObservableList<String> buildUserComboBoxList() {
+    public static ObservableList<String> buildUserComboBoxList() {
         DataSource dataSource = DataSource.getInstance();
         dataSource.getConnection();
         ArrayList<User> users = dataSource.queryUser();
@@ -55,47 +59,24 @@ public class ReportConsultantScheduleModel {
         return date;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
     public LocalTime getStart() {
         return start;
-    }
-
-    public void setStart(LocalTime start) {
-        this.start = start;
     }
 
     public LocalTime getEnd() {
         return end;
     }
 
-    public void setEnd(LocalTime end) {
-        this.end = end;
-    }
-
     public String getType() {
         return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public String getCustomerName() {
         return customerName;
     }
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
-
     public String getUserName() {
         return userName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
 }
