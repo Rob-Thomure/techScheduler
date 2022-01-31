@@ -25,4 +25,7 @@ public class Address {
         return phone;
     }
 
+    public City getCity() {
+        return city;
+    }
 }

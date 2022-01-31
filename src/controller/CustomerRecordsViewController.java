@@ -18,7 +18,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
-import model.CustomerRecordsViewModel;
+import model.CustomerRecords;
 
 import java.io.IOException;
 import java.net.URL;
@@ -42,16 +42,16 @@ public class CustomerRecordsViewController implements Initializable {
     }
 
     @FXML
-    private TableView<CustomerRecordsViewModel> customerRecordsTableView;
+    private TableView<CustomerRecords> customerRecordsTableView;
 
     @FXML
-    private TableColumn<CustomerRecordsViewModel, String> nameCol;
+    private TableColumn<CustomerRecords, String> nameCol;
 
     @FXML
-    private TableColumn<CustomerRecordsViewModel, String> addressCol;
+    private TableColumn<CustomerRecords, String> addressCol;
 
     @FXML
-    private TableColumn<CustomerRecordsViewModel, String> phoneNumberCol;
+    private TableColumn<CustomerRecords, String> phoneNumberCol;
 
     @FXML
     void onActionAdd(ActionEvent event) throws IOException {
@@ -62,7 +62,7 @@ public class CustomerRecordsViewController implements Initializable {
     void onActionDelete(ActionEvent event) throws IOException {
         try {
             //get selected row on the customer table view
-            CustomerRecordsViewModel customer = customerRecordsTableView.getSelectionModel().getSelectedItem();
+            CustomerRecords customer = customerRecordsTableView.getSelectionModel().getSelectedItem();
 
 
             try {
@@ -118,7 +118,7 @@ public class CustomerRecordsViewController implements Initializable {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        ObservableList<CustomerRecordsViewModel> customers = CustomerRecordsViewModel.buildCustomerList();
+        ObservableList<CustomerRecords> customers = CustomerRecords.buildCustomerList();
         customerRecordsTableView.setItems(customers);
         nameCol.setCellValueFactory( new PropertyValueFactory<>("customerName") );
         addressCol.setCellValueFactory( new PropertyValueFactory<>("address") );

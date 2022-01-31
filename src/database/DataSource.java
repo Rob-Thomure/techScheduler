@@ -75,10 +75,16 @@ public class DataSource {
     public static final String COLUMN_USER_LAST_UPDATE = "lastUpdate";
     public static final String COLUMN_USER_LAST_UPDATE_BY = "lastUpdateBy";
 
-    private static final String JDBCURL = "jdbc:mysql://3.227.166.251/U04ltA";
+    //private static final String JDBCURL = "jdbc:mysql://3.227.166.251/U04ltA";
+    private static final String JDBCURL = "jdbc:mysql://127.0.0.1/RTSoftware2ProjectAppVer2";
+
     private static final String DRIVERINTERFACE = "com.mysql.jdbc.Driver";
-    private static final String USERNAME = "U04ltA";
-    private static final String PASSWORD = "53688278090";
+//    private static final String USERNAME = "U04ltA";
+//    private static final String PASSWORD = "53688278090";
+
+    private static final String USERNAME = "root";
+    private static final String PASSWORD = "rootytooty";
+
 
     private static volatile DataSource instance = null;
     private static volatile Connection connection = null;
@@ -258,7 +264,7 @@ public class DataSource {
         }
     }
 
-    public int insertCountry(CustomerRecordsAddModel country) {
+    public int insertCountry(CustomerRecords country) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO country(country, createDate, createdBy, lastUpdateBy) VALUES(?,now(),?,?)")) {
             preparedStatement.setString(1, country.getCountry());
@@ -276,7 +282,7 @@ public class DataSource {
         return -1;
     }
 
-    public int insertCity(CustomerRecordsAddModel city, int countryId) {
+    public int insertCity(CustomerRecords city, int countryId) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO city(city, countryId, createDate, createdBy, lastUpdateBy) VALUES(?,?, now(),?,?)")){
             preparedStatement.setString(1, city.getCity());
@@ -295,7 +301,7 @@ public class DataSource {
         return -1;
     }
 
-    public int insertAddress(CustomerRecordsAddModel address, int cityId) {
+    public int insertAddress(CustomerRecords address, int cityId) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO address(address, address2, cityId, postalCode, phone, createDate, createdBy, lastUpdateBy) "
                    + "VALUES(?,?,?,?,?, now(),?,?)")) {
@@ -318,7 +324,7 @@ public class DataSource {
         return -1;
     }
 
-    public void insertCustomer(CustomerRecordsAddModel customer, int addressId) {
+    public void insertCustomer(CustomerRecords customer, int addressId) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "INSERT INTO customer(customerName, addressId, active, createDate, createdBy, lastUpdateBy) " +
                         "VALUES(?,?,?, now(),?,?)")){
@@ -333,7 +339,7 @@ public class DataSource {
         }
     }
 
-    public void updateAddress(CustomerRecordsUpdateModel address) {
+    public void updateAddress(CustomerRecords address) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE address SET address = ?, phone = ? WHERE addressId = ?")){
             preparedStatement.setString(1, address.getAddress());
@@ -345,7 +351,7 @@ public class DataSource {
         }
     }
 
-    public void updateCustomer(CustomerRecordsUpdateModel customerRecordsUpdateModel) {
+    public void updateCustomer(CustomerRecords customerRecordsUpdateModel) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(
                 "UPDATE customer SET customerName = ? WHERE customerId = ?")){
             preparedStatement.setString(1, customerRecordsUpdateModel.getCustomerName());

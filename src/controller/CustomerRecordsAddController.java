@@ -15,7 +15,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import model.CustomerRecordsAddModel;
+import model.CustomerRecords;
 
 import java.io.IOException;
 import java.net.URL;
@@ -70,7 +70,7 @@ public class CustomerRecordsAddController implements Initializable {
             try {
 
                 Long.parseLong(phone); // used to verify only numbers input for phone#
-                CustomerRecordsAddModel newCustomer = new CustomerRecordsAddModel(name, address, city, country, phone);
+                CustomerRecords newCustomer = new CustomerRecords(name, address, city, country, phone);
                 newCustomer.addCustomerToDB(newCustomer);
                 switchScenes(event, "CustomerRecordsView");
             } catch(NumberFormatException e) {

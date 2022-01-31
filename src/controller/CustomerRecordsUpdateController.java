@@ -15,8 +15,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import model.CustomerRecordsUpdateModel;
-import model.CustomerRecordsViewModel;
+import model.CustomerRecords;
 
 import java.io.IOException;
 import java.net.URL;
@@ -29,7 +28,7 @@ import java.util.ResourceBundle;
  * @author robertthomure
  */
 public class CustomerRecordsUpdateController implements Initializable {
-    CustomerRecordsUpdateModel customerRecordsUpdateModel;
+    CustomerRecords customerRecords;
 
     public void switchScenes(ActionEvent event, String view) throws IOException{
         Stage stage = (Stage)((Button)event.getSource()).getScene().getWindow();
@@ -60,8 +59,8 @@ public class CustomerRecordsUpdateController implements Initializable {
 
     @FXML
     void onActionSave(ActionEvent event) throws IOException {
-        int customerId = customerRecordsUpdateModel.getCustomerId();
-        int addressId = customerRecordsUpdateModel.getAddressId();
+        int customerId = customerRecords.getCustomerId();
+        int addressId = customerRecords.getAddressId();
         String customerName = nameTxt.getText().trim();
         String address = addressTxt.getText().trim();
         String phone = phoneNumberTxt.getText().trim();
@@ -72,7 +71,7 @@ public class CustomerRecordsUpdateController implements Initializable {
             try {
                 Long.parseLong(phone); // used to verify only numbers input for phone#
                 //update tables
-                CustomerRecordsUpdateModel updatedCustomer = new CustomerRecordsUpdateModel(customerId, addressId,
+                CustomerRecords updatedCustomer = new CustomerRecords(customerId, addressId,
                         customerName, address, phone);
                 updatedCustomer.updateCustomerDB(updatedCustomer);
                 //switch scene
@@ -91,8 +90,8 @@ public class CustomerRecordsUpdateController implements Initializable {
         }
     }
 
-    public void sendCustomer(CustomerRecordsViewModel customer){
-        customerRecordsUpdateModel = new CustomerRecordsUpdateModel(customer.getCustomerId(), customer.getAddressId(),
+    public void sendCustomer(CustomerRecords customer){
+        customerRecords = new CustomerRecords(customer.getCustomerId(), customer.getAddressId(),
                 customer.getCustomerName(), customer.getAddress(), customer.getPhone());
         nameTxt.setText(customer.getCustomerName());
         addressTxt.setText(customer.getAddress());
